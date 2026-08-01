@@ -1,0 +1,16 @@
+# Required. Everything in this supplement runs on these four alone.
+numpy>=1.24
+scipy>=1.10
+mpmath>=1.2
+matplotlib>=3.6
+
+# Optional but strongly recommended. Accelerates the closed-form
+# self-inductance evaluation and the simulation's inner loop by ~150x
+# (JIT compilation via LLVM); without it every function still gives
+# identical results, just much more slowly -- see the runtime note in
+# README.md before running Notebook 1 without numba installed.
+numba>=0.58
+
+# To run the notebooks themselves (not required if you only import the
+# .py modules from your own scripts).
+jupyter
