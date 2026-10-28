@@ -1,5 +1,5 @@
 """Velocity-Verlet (kick-drift-kick) integrator for the sliding-bar
-equations of motion, eqs. (vel1)-(curr1), in the paper's reduced units
+equations of motion, eqs. (eom), in the paper's reduced units
 (wire radius d=1, bar mass M=1, so that mu, d and M are all unity).
 
 The scheme is transcribed from the paper's own displayed update equations,
@@ -82,7 +82,7 @@ def verlet_step(x, p, I, l, B, rho, dt, a_prev, R_prev):
 
 
 def verlet_integrate(x0, p0, l, B, rho, dt, n_steps, n_print, wall=1.1, floor=1.0):
-    """Integrate eqs. (vel1)-(curr1) for n_steps steps of size dt, starting
+    """Integrate eqs. (eom) for n_steps steps of size dt, starting
     from (x0, p0, I=0). Records every n_print-th step. An elastic collision
     reflects p when x < wall; integration stops early if x < floor.
 

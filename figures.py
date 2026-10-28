@@ -1,4 +1,5 @@
-"""Plotting helpers for Notebook 1, one per reproduced paper figure. Each
+"""Plotting helpers for Notebook 1, one per reproduced figure of the paper
+and of the first supplementary item. Each
 function takes already-computed data (from dynamics.py/models.py/
 inductance.py) and an optional save path, and returns the matplotlib
 Figure. Layouts reproduce those of the paper's own figures. The paper's
@@ -16,7 +17,6 @@ figures carry (a)/(b)/(c) labels.
 
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patheffects as pe
 
 CM = 1 / 2.54          # centimetres -> inches
 WIDTH_SINGLE = 8.5 * CM   # single-figure width
@@ -46,17 +46,20 @@ def _panel_label(ax, text):
                       edgecolor='none', alpha=0.75))
 
 
-def plot_xpI(t, x, p, I, x_model, p_model, I_model, xlim=None, save_path=None):
-    """x, p, I vs t, with the no-self-inductance model overlaid (dashed).
-    Reproduces the paper's two three-panel trajectory figures (the
-    over-damped and under-damped cases). Panels are labelled (a), (b),
-    (c) from top to bottom."""
+def plot_xpI(t, x, p, I, x_model, p_model, I_model, xlim=None, save_path=None,
+             model_label='damped oscillator'):
+    """x, p, I vs t, with an analytic model overlaid (dashed).
+    Reproduces the paper's two three-panel trajectory figures, which
+    overlay the damped-oscillator solution eqs. (odsol)/(udsol) on either
+    side of Q=1/2; pass model_label to overlay a different model (the
+    no-self-inductance one, say). Panels are labelled (a), (b), (c) from
+    top to bottom."""
     with plt.rc_context(STYLE):
         fig, axes = plt.subplots(3, 1, sharex=True,
                                  figsize=(WIDTH_SINGLE, 1.3 * WIDTH_SINGLE))
         axes[0].plot(t, x, linestyle='-', color='C0', label='full solution')
         axes[0].plot(t, x_model, linestyle='--', color='k',
-                     label='no self-inductance')
+                     label=model_label)
         axes[0].set_ylabel('$x$')
         axes[0].legend(loc='best')
         axes[1].plot(t, p, linestyle='-', color='C0')
@@ -72,88 +75,6 @@ def plot_xpI(t, x, p, I, x_model, p_model, I_model, xlim=None, save_path=None):
             for ax in axes:
                 ax.set_xlim(*xlim)
         fig.tight_layout()
-        if save_path:
-            fig.savefig(save_path, dpi=DPI)
-    return fig
-
-
-def plot_energy(t, K, Eb, Q, xlim=None, save_path=None):
-    """K, E_B, Q_tot and their sum vs t. Reproduces the paper's energy
-    figure. Each contribution gets its own line style so the curves stay
-    distinguishable in greyscale."""
-    E_total = K + Eb + Q
-    with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=(WIDTH_SINGLE, 0.72 * WIDTH_SINGLE))
-        ax.plot(t, K, linestyle='-', color='C0', label='$K$')
-        ax.plot(t, Eb, linestyle='--', color='C1', label='$E_B$')
-        ax.plot(t, Q, linestyle='-.', color='C2', label='$Q_{tot}$')
-        ax.plot(t, E_total, linestyle=(0, (1, 1.5)), color='k',
-                label='$K+E_B+Q_{tot}$')
-        ax.set_xlabel('$t$')
-        ax.set_ylabel('Energy')
-        ax.legend()
-        if xlim is not None:
-            ax.set_xlim(*xlim)
-        fig.tight_layout()
-        if save_path:
-            fig.savefig(save_path, dpi=DPI)
-    return fig
-
-
-def plot_force_fit(t, Ftot, Ffit, xlim=None, save_path=None):
-    """Simulated total force with the fitted damped-oscillator model
-    overlaid. Reproduces the paper's force-fit figure. The simulated
-    force is drawn as markers and the fit as a dashed line, so the two
-    are told apart by shape as well as by colour."""
-    with plt.rc_context(STYLE):
-        fig, ax = plt.subplots(figsize=(WIDTH_SINGLE, 0.72 * WIDTH_SINGLE))
-        ax.plot(t, Ftot, marker='o', markersize=1.5, linestyle='None',
-                color='k', label='Force')
-        ax.plot(t, Ffit, linestyle=(0, (5, 2)), linewidth=1.4, color='red',
-                label='Fitted model')
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Force')
-        ax.legend()
-        if xlim is not None:
-            ax.set_xlim(*xlim)
-        fig.tight_layout()
-        if save_path:
-            fig.savefig(save_path, dpi=DPI)
-    return fig
-
-
-def plot_Rsq_heatmaps(rho, B, Rsq_current, rho_ns, B_ns, Rsq_noselfL,
-                       rho_line, B0c_line, save_path=None):
-    """R^2(rho, B0) heatmaps for the damped-oscillator model and the
-    no-self-inductance model, with B_{0,c}(rho) overlaid on both.
-    Reproduces the paper's goodness-of-fit heatmap figure. The panels are
-    labelled (a) and (b); the critical-field line is drawn white with a
-    dark outline so that it stays visible over the whole colour map, in
-    colour and in greyscale."""
-    vmin, vmax = 0, 1.0
-    outline = [pe.Stroke(linewidth=2.2, foreground='k'), pe.Normal()]
-    with plt.rc_context(STYLE):
-        fig, axes = plt.subplots(1, 2, figsize=(WIDTH_WIDE, 0.42 * WIDTH_WIDE),
-                                 sharex=True, sharey=True)
-
-        im0 = axes[0].pcolormesh(rho, B, np.clip(Rsq_current, vmin, vmax),
-                                  shading='auto', cmap='viridis',
-                                  vmin=vmin, vmax=vmax)
-        im1 = axes[1].pcolormesh(rho_ns, B_ns, np.clip(Rsq_noselfL, vmin, vmax),
-                                  shading='auto', cmap='viridis',
-                                  vmin=vmin, vmax=vmax)
-        titles = ('oscillator-model fit', 'no-inductance model')
-        for ax, title, tag in zip(axes, titles, ('(a)', '(b)')):
-            ax.plot(rho_line, B0c_line, color='w', linestyle='--',
-                    linewidth=1.4, path_effects=outline,
-                    label='$B_{0,c}(\\rho)$')
-            ax.set_xlabel(r'$\rho$')
-            ax.set_ylabel(r'$B_0$')
-            ax.set_title(title)
-            ax.legend(loc='upper right')
-            _panel_label(ax, tag)
-
-        fig.colorbar(im1, ax=axes, label='$R^2$', shrink=0.9)
         if save_path:
             fig.savefig(save_path, dpi=DPI)
     return fig
@@ -188,6 +109,49 @@ def plot_L_vs_asymptote(x, L_exact, L_asymp, save_path=None):
         ax.set_xlabel('$x$')
         ax.set_ylabel('$L(x)$')
         ax.legend()
+        fig.tight_layout()
+        if save_path:
+            fig.savefig(save_path, dpi=DPI)
+    return fig
+
+
+def plot_position_vs_eps(panels, x0, save_path=None):
+    """Bar position vs time at two values of eps on either side of the
+    critical point (paper Sec. "Beyond the RLC limit"). Same content as the
+    top panel of the trajectory figures above -- x(t) full (solid) against
+    the eps -> 0 damped-oscillator reference (dashed) -- on a two-by-two
+    grid whose rows are the two regimes (over-damped above, under-damped
+    below) and whose columns are a small and a large eps. The dotted line
+    marks the launch position x0, so the gap between the two curves at late
+    times is the shift of the resting position that eps produces, in both
+    regimes.
+
+    panels: list of four (label, t_over_T0, x_full, x_oscillator), in
+            reading order; the label is placed in the panel corner and
+            should name the regime's Q and the panel's eps.
+    x0: launch position, drawn as a horizontal reference in every panel.
+    """
+    with plt.rc_context(STYLE):
+        fig, axes = plt.subplots(2, 2,
+                                 figsize=(WIDTH_WIDE, 0.62 * WIDTH_WIDE))
+        for ax, tag, (label, tt, xx, xm) in zip(axes.ravel(),
+                                                ('(a)', '(b)', '(c)', '(d)'),
+                                                panels):
+            ax.axhline(x0, color='0.6', linewidth=0.6, linestyle=':', zorder=0)
+            ax.plot(tt, xx, linestyle='-', color='C0', label='full solution')
+            ax.plot(tt, xm, linestyle='--', color='k',
+                    label='damped oscillator')
+            ax.set_ylabel('$x$')
+            ax.set_xlim(tt[0], tt[-1])
+            # headroom at the top so the panel label never sits on the curves
+            lo = min(xx.min(), xm.min())
+            hi = max(xx.max(), xm.max(), x0)
+            ax.set_ylim(lo - 0.04 * (hi - lo), hi + 0.26 * (hi - lo))
+            _panel_label(ax, f'{tag} {label}')
+        for ax in axes[-1]:
+            ax.set_xlabel('$t/T_0$')
+        axes[0, 1].legend(loc='center right', framealpha=0.9, fontsize=7,
+                          handlelength=2.2, borderpad=0.4, labelspacing=0.3)
         fig.tight_layout()
         if save_path:
             fig.savefig(save_path, dpi=DPI)

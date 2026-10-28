@@ -30,9 +30,9 @@ state:
 and two notebooks:
 
 - **`notebook1_numerical_experiments.ipynb`** — runs the simulation and
-  reproduces the paper's seven computed figures, with the paper's own
-  parameter values. Lets you vary $B_0$, $\rho$ and the initial
-  conditions and re-run.
+  reproduces every computed figure of the paper and of the first
+  supplementary item, with the paper's own parameter values. Lets you vary
+  $B_0$, $\rho$ and the initial conditions and re-run.
 - **`notebook2_correctness_tests.ipynb`** — re-runs every numerical or
   symbolic correctness check the paper states it performed (e.g. "checked
   against direct numerical integration", "verified against a
@@ -61,10 +61,9 @@ steps and no dependency on anything outside this directory.
 Every function here is plain, correct numpy/Python and needs nothing
 beyond `requirements.txt`'s four required packages. But `dynamics.py`'s
 inner loop calls the closed-form self-inductance several times per
-integration step, and a full-resolution run (the paper's own step
-counts, or the $17\times17$ parameter-grid scan behind the
-goodness-of-fit figure) is impractically slow without JIT
-compilation: **a single $10^6$-step trajectory takes about 140 s in
+integration step, and a full-resolution run (the paper's own step counts,
+or the ring-down sweep behind the $\varepsilon$ figure) is
+slow without JIT compilation: **a single $10^6$-step trajectory takes about 140 s in
 pure Python and well under 1 s with `numba` installed** (`pip install
 numba`, no compiler needed) — roughly a 150x difference, confirmed by
 direct benchmark on this codebase. `_jit.py` supplies `numba.njit` when
@@ -72,18 +71,19 @@ available and a transparent no-op otherwise, so results are identical
 either way; only the wall-clock time changes.
 
 Because of this, **Notebook 1 defaults to `FULL_RESOLUTION = False`**: a
-fast demo (well under two minutes end to end, with or without `numba`)
-that still exercises every figure and every physical regime the paper
-does, though a couple of panels are visibly coarser than the paper's own
-(documented at each affected cell — the weak-field decay figure only
-shows the start of the transient, and the reduced $3\times3$ grid scan is
-noisier than the paper's $17\times17$ one). Setting
-`FULL_RESOLUTION = True` reproduces the paper's figures at its exact
-parameters and step counts; with `numba` installed this finishes in
-about 5 minutes (the $17\times17$, $10^6$-step grid scan dominates);
-without it, that same scan is on the order of a day. Notebook 2 has no
-such switch — every check in it completes in well under a minute
-regardless of `numba`.
+fast demo that still exercises every figure and every physical regime the
+paper does, though a couple of panels are visibly coarser than the paper's
+own (documented at each affected cell — the weak-field decay figure only
+shows the start of the transient, and the $\varepsilon$ sweep uses five
+amplitudes rather than nine, at two resistivities rather than three). Setting `FULL_RESOLUTION = True` reproduces
+the paper's figures at its exact parameters and step counts. With `numba`
+installed the difference hardly matters — about 10 s and 40 s
+respectively, end to end. Without it, the same two runs take roughly 20 and
+90 minutes, dominated in both cases by the $\varepsilon$ ring-down sweep,
+whose step counts are set by the decay time rather than by the flag.
+Notebook 2 has no such switch — every check in it completes in well under a
+minute with `numba`, several minutes without it (checks B7-B10 run a few
+dozen short ring-downs and glides).
 
 ## Provenance
 
