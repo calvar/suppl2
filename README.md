@@ -23,7 +23,7 @@ state:
 | `inductance.py` | Closed-form self-inductance $L(x,l)$, its gradient $dL/dx$, and the enclosed-current-fraction correction $\Delta L$, for a general wire radius $d$ |
 | `field.py` | The nine-region piecewise induced field $f_B(p,h;x)$ the self-inductance is the flux integral of, and its enclosed-current-fraction-weighted analogue — appendix-level building blocks, used only by Notebook 2 |
 | `dynamics.py` | The velocity-Verlet (kick-drift-kick) integrator for the equations of motion, in the paper's reduced units ($d=1$, $M=1$) |
-| `models.py` | The two limiting-case analytic models the paper compares the simulation against (the no-self-inductance solution and the damped-oscillator/RLC model), and the `curve_fit` wrapper used to fit the second one |
+| `models.py` | The two limiting-case analytic models the paper compares the simulation against (the no-self-inductance solution and the damped-oscillator/RLC model) |
 | `figures.py` | Plotting helpers, one per reproduced figure |
 | `_jit.py` | The optional-`numba` shim shared by `inductance.py`/`dynamics.py` (see **Performance** below) |
 
