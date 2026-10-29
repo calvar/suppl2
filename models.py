@@ -1,8 +1,8 @@
 """The two limiting-case analytic models the paper compares the full
 simulation against -- the standard treatment that ignores self-inductance,
-and the damped-oscillator/RLC-equivalent model -- together with the
-curve-fitting helpers used to fit the second one to simulated data.
-Reduced units throughout (mu=1, d=1, M=1), matching dynamics.py.
+and the damped-oscillator/RLC-equivalent model -- with the helpers used to
+compare them with the simulation. Reduced units throughout (mu=1, d=1,
+M=1), matching dynamics.py.
 
 Every expression here is a direct transcription of the corresponding
 displayed equation in the paper, and each was checked against an
@@ -10,7 +10,6 @@ independent implementation of the same formulas.
 """
 
 import numpy as np
-from scipy.optimize import curve_fit
 
 from inductance import (self_inductance, self_inductance_dx,
                         resistance as _resistance)
@@ -82,47 +81,6 @@ def B0_critical(l, x0, rho):
     with L and R evaluated at x0 as in the paper."""
     L_x0 = self_inductance(MU, D, l, x0)
     return gamma_exact(l, x0, rho) * np.sqrt(L_x0) / l
-
-
-def oscillating_exp_fix_decay_freq(t, A, alpha, omega, phi):
-    """The fitted damped-oscillator force model:
-    F(t) = A exp(-alpha t) cos(omega t + phi), with alpha and omega fixed
-    to the analytic predictions (alpha_damp, and omega_d from
-    omega0 and alpha_damp) and only A,
-    phi left free. A = l B0 I_mx, so I_mx = A/(l B0)."""
-    return A * np.exp(-alpha * t) * np.cos(omega * t + phi)
-
-
-def fit_to_function_fix_decay_freq(ini_guesses, decay, omega, t, Ftot):
-    """Fit (A, phi) of oscillating_exp_fix_decay_freq to (t, Ftot) via
-    scipy.optimize.curve_fit, with decay and omega held fixed. Returns
-    (R^2, RMSE, [(label, value, stderr), ...])."""
-    fwrapper = lambda t, A, phi: oscillating_exp_fix_decay_freq(t, A, decay, omega, phi)
-
-    popt, pcov = curve_fit(fwrapper, t, Ftot, p0=ini_guesses, maxfev=10000)
-
-    residuals = Ftot - fwrapper(t, *popt)
-    ss_res = np.sum(residuals**2)
-    ss_tot = np.sum((Ftot - np.mean(Ftot))**2)
-    r_squared = 1 - (ss_res / ss_tot)
-    rmse = np.sqrt(ss_res / len(Ftot))
-    perr = np.sqrt(np.diag(pcov))
-
-    labels = ['A', 'phi']
-    return r_squared, rmse, list(zip(labels, popt, perr))
-
-
-def normalize_amplitude_phase(A, phi):
-    """curve_fit is free to converge to A<0 paired with a phi shifted by
-    pi (same curve, since A cos(x) = (-A) cos(x+pi)). Normalize to A>=0 so
-    that the reported I_mx = A/(l B0) and phi are the physically
-    meaningful pair satisfying I(0) = I_mx cos(phi); also wraps phi to
-    (-pi, pi]."""
-    if A < 0:
-        A = -A
-        phi = phi + np.pi
-    phi = (phi + np.pi) % (2 * np.pi) - np.pi
-    return A, phi
 
 
 def damped_oscillator(t, x0, p0, B, rho, l):
